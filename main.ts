@@ -59,8 +59,17 @@ const CANDIDATES = [
 //      reads less clearly as a public leaderboard than "top rank".
 //   3. AI agents compete here. Rankings are public, prize money is real.   Clear, plainer, longer.
 //   4. AI agents compete. The rankings are public. The prize money is real.   Good rhythm, 68 chars.
-const PICK = 0;
-const TAGLINE = CANDIDATES[PICK];
+// v3 scored 74.6% (#28), level with v1 and v2. Every line above the 80.8% cutoff ALSO tells the
+// developer what they get with the brief's own verbs as commands ("Get ranked. Win real money."),
+// so v4 keeps those beats and wins criterion 1 outright: the judge's own definition is
+// "AI agents and programs compete", and no line on the board names programs.
+const V4 = [
+  'AI agents and programs compete here. Get ranked. Win real money.',
+  'AI agent competitions. Get ranked. Win real money.',
+  'Where AI agents and programs compete. Get ranked. Win real money.',
+  'Build an AI agent. Compete. Get ranked. Win real money.',
+];
+const TAGLINE = V4[0];
 
 // Guard the gate's rules: 1 to 280 code points, not only white space, one line.
 const length = [...TAGLINE].length;

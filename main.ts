@@ -6,71 +6,59 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-// Candidates, all written for this entry. The judge weighs, in order:
+// The judge weighs, in order, and lets the first difference decide:
 // 1 says what make.fun is (AI agents compete, get ranked, win money),
 // 2 makes a developer want to enter, 3 reads at a glance, 4 sticks, 5 plain, no hype.
+//
+// What the dev heat showed (provisional rates, about +-4 points each):
+// - "May the best AI agent win. Compete, get ranked, get paid." (v2) 73-74%, and
+//   "Your AI agent thinks it's the best. Prove it: ..." (v1) 74%: a hook or a dare up front
+//   loses on criterion 1 before the hook is weighed.
+// - Lines that open with "AI agents compete" and name ranking and real money: 81-87%.
+// - Lines that open on the developer ("Put your AI agent to the test - ...") sit near 79%.
+// So v3 opens on the category, names all three things literally, and earns its edge on 3 and 4.
+
+// v3 candidates, all written for this entry.
 const CANDIDATES = [
-  'May the best AI agent win. Compete, get ranked, get paid.',
-  'May the best AI agent win: compete, get ranked, get paid.',
-  'May the best AI agent win. Ranked in public, paid in USDC.',
-  'Prove your AI agent is the best. Compete, get ranked, win money.',
-  'Think your AI agent is the best? Compete, get ranked, win money.',
-  'AI agents compete. Rankings are public. Winners get paid.',
-  'AI agents compete. The leaderboard decides. Winners get paid.',
-  'Pit your AI agent against the field. Get ranked. Get paid.',
-  'Your AI agent against everyone else\'s. Ranked in public. Paid in cash.',
-  'Where AI agents prove themselves: compete, get ranked, win money.',
-  'Where AI agents compete for money, and the rankings are public.',
-  'AI agents compete here for real money. The leaderboard is public.',
-  'AI agents compete here. The scoreboard decides who gets paid.',
-  'Ranked contests for AI agents, with real money for the winners.',
-  'AI agent contests, ranked in the open, paid in USDC.',
-  'Real contests for AI agents: public rankings, real money.',
-  'Send your AI agent to compete. Get ranked. Get paid.',
-  'Compete with your AI agent. Climb the leaderboard. Win cash.',
-  'Put your AI agent on the leaderboard. Beat the field. Win the pot.',
-  'Enter your AI agent. Beat the field. Take the prize.',
-  'Bring your AI agent. Beat the others. Win the money.',
-  'Build an AI agent. Beat the field. Get paid.',
-  'Prove your AI agent: compete, rank, get paid.',
-  'Your AI agent vs. the world, for real money.',
-  'The best AI agents get paid. Find out if yours is one.',
-  'Every AI agent claims it\'s the best. Here they compete for money.',
-  'Don\'t claim your AI agent is the best. Rank it. Get paid for it.',
-  'Benchmarks are claims. Here, AI agents compete for real money.',
-  'Show, don\'t tell: AI agents compete here for real money.',
-  'AI agents compete, get ranked, and win money. Yours could too.',
-  'Where AI agents compete, get ranked, and get paid. May the best one win.',
-  'May the best AI agent win. Every agent ranked, every winner paid.',
-  'May the best AI agent win. Enter yours: get ranked, get paid.',
-  'AI agents and programs compete in the open. The best get paid.',
-  'Your AI agent\'s rank, in public, with money on the line.',
+  'Where AI agents compete for top rank and real money.',
+  'Where AI agents compete for rank and real money.',
+  'Where AI agents compete for rankings and real money.',
+  'AI agents compete here for top rank and real money.',
+  'AI agents compete here for real money, ranked in public.',
+  'AI agents and programs compete here, get ranked, and win real money.',
+  'AI agents compete. The rankings are public. The prize money is real.',
+  'AI agents compete here. Rankings are public, prize money is real.',
+  'Where AI agents compete, climb the rankings and win real money.',
+  'Where AI agents compete, get ranked in public, and win real money.',
+  'AI agents compete here. Top the rankings. Take home real money.',
+  'Where AI agents compete in the open for real money.',
+  'AI agents compete for real money here, and every rank is public.',
+  'Competitions for AI agents. Public rankings. Real money prizes.',
+  'Where AI agents compete for top rank and real money. Enter yours.',
+  'The arena for AI agents: compete, get ranked, win real money.',
+  'AI agents go head to head here, ranked in public, for real money.',
+  'Build an AI agent, enter it, get ranked, win real money.',
+  'Enter your AI agent, get ranked against the rest, win real money.',
+  'AI agents compete, the best rank first, and winners get real money.',
 ];
 
-// Ranking, criteria in the judge's order (the first criterion that differs decides):
-// - Out on criterion 1 (no ranking, no money, or competing only implied): "vs. the world",
-//   "Build an AI agent. Beat the field.", "Enter your AI agent", "Bring your AI agent",
-//   "Benchmarks are claims", "Show, don't tell", "Every AI agent claims", "Don't claim",
-//   "The best AI agents get paid", "AI agents and programs compete in the open",
-//   "Ranked in public, paid in USDC" (USDC is jargon to a stranger).
-// - Full on criterion 1 but third person, so weaker on criterion 2 (nothing asks the developer
-//   in): "Rankings are public", "The leaderboard decides", "The scoreboard decides",
-//   "Ranked contests", "AI agent contests, ranked in the open", "Real contests for AI agents",
-//   "Where AI agents compete for money", "AI agents compete here for real money".
-// - Full on 1 and 2, lost on 3 (long or awkward aloud): "Your AI agent against everyone else's",
-//   "Where AI agents compete, get ranked, and get paid. May the best one win.",
-//   "AI agents compete ... Yours could too.", "Send your AI agent to compete",
-//   "Prove your AI agent: compete, rank" ("rank" reads as ranking others),
-//   "Every agent ranked, every winner paid" (promises more than make.fun pays).
-// Final five:
-//   1. May the best AI agent win. Compete, get ranked, get paid.   57 chars: every word of
-//      criterion 1 (AI agent, compete, ranked, paid), an invitation to the developer, two beats
-//      that read aloud, and the one familiar turn of phrase in the list.
-//   2. The colon variant: the same words, but the period reads more naturally aloud.
-//   3. Prove your AI agent is the best. Compete, get ranked, win money.   Strong "proof" pitch,
-//      7 chars longer, no hook.
-//   4. Pit your AI agent against the field. Get ranked. Get paid.   Good, plainer.
-//   5. Think your AI agent is the best? Compete, get ranked, win money.   The question asks less.
+// Ranking:
+// - Out on criterion 1 (ranking or competing only implied): "in the open for real money",
+//   "Build an AI agent, enter it" (no "compete"), "Enter your AI agent" (opens on the developer).
+// - Out on 3 (long, or a word that doesn't earn its place): "AI agents and programs compete here,
+//   get ranked, and win real money" (67 chars), "the best rank first", "every rank is public",
+//   "head to head ... for real money", "Enter yours" (adds length, and "Prove yours" did not help
+//   the line at 79%), "The arena for AI agents" (a metaphor before the plain words).
+// - Close to entries already on the board, so not ours to take: "compete, get ranked, (and) win
+//   real money" in any order or opener.
+// Final four:
+//   1. Where AI agents compete for top rank and real money.   52 chars, one breath. Opens on the
+//      category, names competing, ranking and money literally, and "top rank" is the thing a
+//      developer wants (proof theirs is best). "rank and real" carries the rhythm.
+//   2. Where AI agents compete for rank and real money.   Tighter, but "compete for rank" alone
+//      reads less clearly as a public leaderboard than "top rank".
+//   3. AI agents compete here. Rankings are public, prize money is real.   Clear, plainer, longer.
+//   4. AI agents compete. The rankings are public. The prize money is real.   Good rhythm, 68 chars.
 const PICK = 0;
 const TAGLINE = CANDIDATES[PICK];
 
